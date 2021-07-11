@@ -1,6 +1,5 @@
 import datetime
 import pandas as pd
-import datetime
 import requests
 import os
 from zipfile import ZipFile
@@ -11,17 +10,17 @@ class markCloseError(Exception):
 class maNotEnoughError(Exception):
     pass
 
-def download_file(url="https://static.stooq.com/db/h/d_us_txt.zip",dict="~/Downloads/d_us_txt.zip"):
+def download_file(url="https://static.stooq.com/db/h/d_us_txt.zip",dirt="~/Downloads"):
     msg = ""
     err = ""
     try:
         request = requests.get(url)
-        with open(os.path.expanduser(dict), 'wb') as f:
+        with open(os.path.expanduser(f"{dirt}/{url.split('/')[-1]}"), 'wb') as f:
             f.write(request.content)
         f.close
 
-        zf = ZipFile(os.path.expanduser(dict), 'r')
-        zf.extractall(os.path.expanduser('~/Downloads'))
+        zf = ZipFile(os.path.expanduser(f"{dirt}/{url.split('/')[-1]}"), 'r')
+        zf.extractall(os.path.expanduser(dirt))
         zf.close()
         msg += f"下载和解压成功"
     except Exception as e:
@@ -84,13 +83,13 @@ def search_file(rule=".txt", path='.')->list:
     for fpathe,dirs,fs in os.walk(path):   # os.walk是获取所有的目录
         for f in fs:
             filename = os.path.join(fpathe,f)
-            if filename.endswith("/" + rule):  # 判断是否是"xxx"结尾
-                all.append(filename)
+            if filename.endswith("\\" + rule):  # 判断是否是"xxx"结尾 Windows目录用'\'而不是'/'区分
+                all.append(filename)    
     return all
 
 def symbol_above_moving_average(symbol,ma=50,path="~/Downloads/data",end=datetime.date.today()):
     """
-    获取一个股票代码是否高于指定的历史平均价。返回True高于avg，Flase低于avg
+    获取一个股票代码是否高于指定的历史平均价。返回True高于avg，False低于avg
 
     Parameters
     ----------
@@ -103,8 +102,7 @@ def symbol_above_moving_average(symbol,ma=50,path="~/Downloads/data",end=datetim
     end : datetime.date, default today
         计算到的截止日期，默认为当天
     """
-    err_msg = ""
-    successful_msg = ""
+
     tiker_file = search_file(symbol.lower() + ".us.txt",os.path.expanduser(path))
     df = read_stooq_file(path=tiker_file[0])
     #filter df based on end time
@@ -119,7 +117,6 @@ def symbol_above_moving_average(symbol,ma=50,path="~/Downloads/data",end=datetim
             raise maNotEnoughError(f"{ma} 周期均价因时长不足无法得出\n")
     else:
         raise markCloseError(f"输入的日期没有数据，请确保输入的日期当天有开市\n")
-
 
 
 if __name__ == '__main__':

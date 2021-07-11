@@ -4,8 +4,8 @@ import datetime
 from telegram import Bot
 from pandas_datareader._utils import RemoteDataError
 from requests.exceptions import ConnectionError
-
-
+from stockutil import stooq
+from stockutil import wikipedia
 
 def help():
     return "'sendxyh.py -c configpath'"
@@ -14,7 +14,22 @@ def get_spx_ndx_avg_msg():
     """
     获取spx和ndx在50MA之上的股票数量的百分比信息，返回发给用户的信息。
     """
-    return ""
+
+    rtn_msg=""
+    sp500 = wikipedia.get_sp500_tickers()
+    ndx100 = wikipedia.get_ndx100_tickers()
+    indexes = [sp500,ndx100]
+    for index in indexes:
+        up = []
+        down = []
+        for symbol in index:
+            if stooq.symbol_above_moving_average(symbol):
+                up.append(symbol)
+            else:
+                down.append(symbol)
+        rtn_msg+=f"{index}共有{len(up)+len(down)}支股票，共有{len(up)/(len(up)+len(down))*100:.2f}%高于50周期均线\n"
+
+    return rtn_msg
 
 def cal_symbols_avg(ds:list, symbol:str, avgs:list,end=datetime.date.today()):
     start = end - datetime.timedelta(days=365)
@@ -30,12 +45,14 @@ def cal_symbols_avg(ds:list, symbol:str, avgs:list,end=datetime.date.today()):
                 successful_msg += f"{symbol.upper()}价格: {df['Adj Close'][-1]:0.2f}({df['Low'][-1]:0.2f} - {df['High'][-1]:0.2f}) \n"
                 for avg in avgs:
                     if df.count()[0] > avg :
+                        avg_price = df.tail(avg)['Adj Close'].mean()
                         #加入红绿灯的判断
-                        if df['Adj Close'][-1] < df.tail(avg)['Adj Close'].mean():
+                        if df['Adj Close'][-1] < avg_price:
                             flag = "🔴"
                         else:
                             flag = "🟢"
-                        successful_msg += f"{flag} {avg} 周期均价：{df.tail(avg)['Adj Close'].mean():0.2f}\n"
+                        pct_shift = (((df['Adj Close'][-1])-avg_price)/avg_price)*100
+                        successful_msg += f"{flag} {avg} 周期均价：{df.tail(avg)['Adj Close'].mean():0.2f} ({pct_shift:0.2f})\n"
                     else:
                         successful_msg += f"{avg} 周期均价因时长不足无法得出\n"         
             else: #当天不是交易日时 返回false
@@ -97,7 +114,7 @@ if __name__ == '__main__':
             if err_msg:
                 admin_message += err_msg
         if notify_message:
-            notify_message = "🌈🌈🌈当日天相🌈🌈🌈: \n" + notify_message + "贡献者:毛票教的大朋友们"
+            notify_message = "🌈🌈🌈当日天相🌈🌈🌈: \n" + notify_message + get_spx_ndx_avg_msg() + "贡献者:毛票教的大朋友们"
             sendmsg(bot,notifychat,notify_message,debug)
         if admin_message:
             sendmsg(bot,adminchat,admin_message,debug)
