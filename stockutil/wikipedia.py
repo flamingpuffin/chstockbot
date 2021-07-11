@@ -22,7 +22,7 @@ def get_sp500_tickers():
 
 def get_ndx100_tickers():
     table = pd.read_html('https://en.wikipedia.org/wiki/Nasdaq-100#Components')
-    df = table[4]
+    df = table[3]
     return df['Ticker'].tolist() 
 
 def save_list(list,filename):
