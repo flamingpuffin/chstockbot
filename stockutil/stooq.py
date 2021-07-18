@@ -10,7 +10,7 @@ class markCloseError(Exception):
 class maNotEnoughError(Exception):
     pass
 
-def download_file(url="https://static.stooq.com/db/h/d_us_txt.zip",dirt="~/Downloads"):
+def download_file(url="http://static.stooq.com/db/h/d_us_txt.zip",dirt="~/Downloads"):
     msg = ""
     err = ""
     try:

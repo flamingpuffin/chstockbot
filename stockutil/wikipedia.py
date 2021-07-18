@@ -16,12 +16,12 @@ import stooq
 #     return tickers
 
 def get_sp500_tickers():
-    table=pd.read_html('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')
+    table=pd.read_html('http://en.wikipedia.org/wiki/List_of_S%26P_500_companies')
     df = table[0]
     return df['Symbol'].tolist()
 
 def get_ndx100_tickers():
-    table = pd.read_html('https://en.wikipedia.org/wiki/Nasdaq-100#Components')
+    table = pd.read_html('http://en.wikipedia.org/wiki/Nasdaq-100#Components')
     df = table[3]
     return df['Ticker'].tolist() 
 
@@ -39,7 +39,7 @@ def load_list(filename):
 
 if __name__ == '__main__':
     # 本程序只是用于测试，正常使用请from stockutil import wikipedia
-    sp500 = get_sp500_tickers()
+ #   sp500 = get_sp500_tickers()
     ndx100 = get_ndx100_tickers()
     indexes = [sp500,ndx100]
     up = []
